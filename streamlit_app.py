@@ -16,27 +16,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- EMBEDDED MINIMALIST VECTOR LOGO COMPONENT (CLINICAL WHITE & SOUNDWAVE) ---
-def render_app_logo():
-    st.markdown("""
-        <div style="display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin-bottom: 12px; background: linear-gradient(135deg, #0284c7, #0369a1); border-radius: 12px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
-            <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.15); border-radius: 10px;">
-                <!-- Minimalist Soundwave Icon -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="2" y="9" width="2" height="6" rx="1" fill="white"/>
-                    <rect x="6" y="5" width="2" height="14" rx="1" fill="white"/>
-                    <rect x="10" y="2" width="2" height="20" rx="1" fill="white"/>
-                    <rect x="14" y="6" width="2" height="12" rx="1" fill="white"/>
-                    <rect x="18" y="9" width="2" height="6" rx="1" fill="white"/>
-                </svg>
-            </div>
-            <div>
-                <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2;">EchoSpeech</h3>
-                <p style="margin: 0; font-size: 11px; color: rgba(255, 255, 255, 0.85); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;">Clinical SLP Coach</p>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
 # --- MOCK USER DATABASE (Stores credentials and profiles) ---
 if "user_credentials" not in st.session_state:
     st.session_state.user_credentials = {
@@ -54,7 +33,8 @@ if "username" not in st.session_state:
 
 # --- LOGIN / SIGN UP GATEWAY ---
 if not st.session_state.logged_in:
-    render_app_logo()
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=100)
     st.title("🔐 Secure Portal")
     st.write("Welcome! Please sign in to your personal profile or create a new account to track your fluency, homework, and session analytics.")
     
@@ -117,7 +97,8 @@ user_data = st.session_state.user_profiles[current_user]
 
 # --- SIDEBAR CONTROLS & USER PROFILE DASHBOARD ---
 with st.sidebar:
-    render_app_logo()
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=80)
     st.markdown("---")
     st.subheader("👤 User Profile")
 
@@ -167,7 +148,7 @@ scenario = st.sidebar.selectbox(
     ["Clinical Fluency & General Conversation", "Job Interview Simulation", "Public Speaking Presentation Q&A", "Casual Social Small Talk"],
     key=f"{current_user}_scenario"
 )
-st.sidebar.image("logo.png", width=150)
+
 speech_speed = st.sidebar.slider("Coach Voice Speed:", 0.75, 1.25, 0.90, 0.05, key=f"{current_user}_speed")
 
 st.sidebar.markdown("---")
@@ -217,7 +198,9 @@ if st.sidebar.button("Exit Homework / Return to General Session"):
     st.rerun()
 
 # --- MAIN APP UI ---
-render_app_logo()
+if os.path.exists("logo.png"):
+    st.image("logo.png", width=120)
+st.title("EchoSpeech: Clinical Speech Pathology & Fluency Coach")
 st.write(f"Logged in as **{current_user}**. Your custom profile, ongoing session, analytics, and homework assignments remain active.")
 
 with st.expander("🧘 Pre-Speech Pacing Anchor"):
