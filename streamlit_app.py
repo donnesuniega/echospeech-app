@@ -312,7 +312,8 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
             if stutter_detected:
                 tags.append("Repetition/clonic behavior detected")
             if tags:
-                user_display_msg += f" *[Acoustic Telemetry: {', '.join(tags)]]*"
+                tag_str = ", ".join(tags)
+                user_display_msg += f" *[Acoustic Telemetry: {tag_str}]*"
 
             user_data["messages"].append({"role": "user", "content": user_display_msg})
             with st.chat_message("user"):
