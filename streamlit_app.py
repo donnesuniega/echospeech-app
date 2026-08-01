@@ -217,9 +217,9 @@ else:
 
 # --- SYSTEM PROMPT BUILDER ---
 if user_data["homework_assigned_this_session"]:
-    homework_rule = "STRICT RULE: A targeted speech therapy homework assignment HAS ALREADY BEEN GIVEN during this session. You are strictly forbidden from assigning any new homework or using the phrase 'Homework Assignment:'."
+    homework_rule = "STRICT RULE: A targeted speech therapy homework assignment HAS ALREADY BEEN GIVEN during this session. You are strictly forbidden from ever mentioning, referencing, or repeating homework assignments again during this conversation."
 else:
-    homework_rule = "STRICT RULE: You must assign EXACTLY ONE targeted speech therapy homework assignment during this session focused on overcoming the specific speech challenges detected, using the exact format 'Homework Assignment: [task]'. Once given, do not assign any more."
+    homework_rule = "STRICT RULE: You must assign EXACTLY ONE targeted speech therapy homework assignment during this session focused on overcoming the specific speech challenges detected, using the exact format 'Homework Assignment: [task]'. Once given, you must never mention homework again for the rest of the session."
 
 vocab_guideline = (
     f"You are a licensed Speech-Language Pathologist (SLP) and expert speech coach. {age_guideline} "
@@ -316,9 +316,9 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
                 st.write(user_display_msg)
 
             if user_data["homework_assigned_this_session"]:
-                dynamic_hw_instruction = "REMINDER: A targeted homework assignment has ALREADY been assigned this session. Do NOT assign any new homework."
+                dynamic_hw_instruction = "REMINDER: A targeted homework assignment has ALREADY been assigned this session. You are strictly forbidden from mentioning homework again."
             else:
-                dynamic_hw_instruction = "You MUST assign EXACTLY ONE targeted homework assignment focused on overcoming the specific speech challenges detected, using the format 'Homework Assignment: [task]'."
+                dynamic_hw_instruction = "You MUST assign EXACTLY ONE targeted homework assignment focused on overcoming the specific speech challenges detected, using the format 'Homework Assignment: [task]'. Once given, never mention it again."
 
             note_content = (
                 f"Clinical SLP diagnostic report: User audio transcript received. "
