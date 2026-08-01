@@ -16,16 +16,23 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- EMBEDDED MINIMALIST VECTOR LOGO COMPONENT ---
+# --- EMBEDDED MINIMALIST VECTOR LOGO COMPONENT (CLINICAL WHITE & SOUNDWAVE) ---
 def render_app_logo():
     st.markdown("""
-        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 10px;">
-            <div style="background: linear-gradient(135deg, #2563eb, #1e40af); width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);">
-                <span style="color: white; font-size: 22px; font-weight: bold;">🎙️</span>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin-bottom: 12px; background: linear-gradient(135deg, #0284c7, #0369a1); border-radius: 12px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
+            <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.15); border-radius: 10px;">
+                <!-- Minimalist Soundwave Icon -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="9" width="2" height="6" rx="1" fill="white"/>
+                    <rect x="6" y="5" width="2" height="14" rx="1" fill="white"/>
+                    <rect x="10" y="2" width="2" height="20" rx="1" fill="white"/>
+                    <rect x="14" y="6" width="2" height="12" rx="1" fill="white"/>
+                    <rect x="18" y="9" width="2" height="6" rx="1" fill="white"/>
+                </svg>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; letter-spacing: -0.5px;">EchoSpeech</h3>
-                <p style="margin: 0; font-size: 11px; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Clinical SLP Coach</p>
+                <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2;">EchoSpeech</h3>
+                <p style="margin: 0; font-size: 11px; color: rgba(255, 255, 255, 0.85); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;">Clinical SLP Coach</p>
             </div>
         </div>
     """, unsafe_allow_html=True)
