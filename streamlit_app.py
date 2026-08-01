@@ -167,7 +167,7 @@ scenario = st.sidebar.selectbox(
     ["Clinical Fluency & General Conversation", "Job Interview Simulation", "Public Speaking Presentation Q&A", "Casual Social Small Talk"],
     key=f"{current_user}_scenario"
 )
-
+st.sidebar.image("logo.png", width=150)
 speech_speed = st.sidebar.slider("Coach Voice Speed:", 0.75, 1.25, 0.90, 0.05, key=f"{current_user}_speed")
 
 st.sidebar.markdown("---")
