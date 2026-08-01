@@ -255,11 +255,30 @@ if user_data["latest_audio_bytes"] is not None:
 st.write("### Your Turn to Speak:")
 audio_data = mic_recorder(start_prompt="🔴 Start Recording", stop_prompt="⏹️ Stop Recording", just_once=False, key=f'{current_user}_speech_recorder')
 
+# Ensure we have valid audio bytes and prevent duplicate processing loops
 if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
     audio_bytes = audio_data['bytes']
     
-    if audio_bytes and audio_data != st.session_state.get('last_processed_audio'):
-        st.session_state['last_processed_audio'] = audio_data
+    # Generate a unique hash or check against last processed audio
+    audio_signature = hash(audio_bytes)
+    if audio_signature != st.session_state.get('last_audio_signature'):
+        st.session_state['last_audio_signature'] = audio_signature
+        
+        with st.spinner("Analyzing speech mechanics, detecting hurdles, and formulating SLP recommendations..."):
+            audio_file_path = "temp_audio.wav"
+            try:
+                with open(audio_file_path, "wb") as f:
+                    f.write(audio_bytes)
+
+                with open(audio_file_path, "rb") as audio_file:
+                    transcript_response = client.audio.transcriptions.create(
+                        model="whisper-1", file=audio_file, response_format="verbose_json", timestamp_granularities=["word"]
+                    )
+            except Exception as e:
+                st.error(f"Error processing audio: {e}")
+                if os.path.exists(audio_file_path):
+                    os.remove(audio_file_path)
+                st.stop()
         
         with st.spinner("Analyzing speech mechanics, detecting hurdles, and formulating SLP recommendations..."):
             audio_file_path = "temp_audio.wav"
