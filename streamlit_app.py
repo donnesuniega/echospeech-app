@@ -2,7 +2,6 @@ import os
 import time
 import streamlit as st
 from openai import OpenAI
-from streamlit_mic_recorder import mic_recorder
 
 # --- PAGE CONFIGURATION & CSS TO HIDE AUDIO PLAYER ---
 st.set_page_config(page_title="EchoSpeech SLP Coach", layout="wide")
@@ -251,22 +250,19 @@ if user_data["latest_audio_bytes"] is not None:
     user_data["latest_audio_bytes"] = None
     st.audio(audio_to_play, format="audio/mp3", autoplay=True)
 
-# --- RECORDING & PROCESSING SECTION ---
+# --- NATIVE AUDIO INPUT & PROCESSING SECTION ---
 st.write("### Your Turn to Speak:")
-audio_data = mic_recorder(start_prompt="🔴 Start Recording", stop_prompt="⏹️ Stop Recording", just_once=False, key=f'{current_user}_speech_recorder')
+audio_file_input = st.audio_input("Record your response", key=f'{current_user}_audio_input')
 
-# Ensure we have valid audio bytes and prevent duplicate processing loops
-if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
-    audio_bytes = audio_data['bytes']
-    
-    # Generate a unique hash or check against last processed audio
-    audio_signature = hash(audio_bytes)
-    if audio_signature != st.session_state.get('last_audio_signature'):
-        st.session_state['last_audio_signature'] = audio_signature
+if audio_file_input is not None:
+    if audio_file_input != st.session_state.get('last_processed_audio_file'):
+        st.session_state['last_processed_audio_file'] = audio_file_input
         
         with st.spinner("Analyzing speech mechanics, detecting hurdles, and formulating SLP recommendations..."):
-            audio_file_path = "temp_audio.wav"
             try:
+                audio_bytes = audio_file_input.getvalue()
+                audio_file_path = "temp_audio.wav"
+                
                 with open(audio_file_path, "wb") as f:
                     f.write(audio_bytes)
 
@@ -274,114 +270,97 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
                     transcript_response = client.audio.transcriptions.create(
                         model="whisper-1", file=audio_file, response_format="verbose_json", timestamp_granularities=["word"]
                     )
-            except Exception as e:
-                st.error(f"Error processing audio: {e}")
+                
+                user_text = transcript_response.text
+                words_data = getattr(transcript_response, "words", [])
+
+                long_pause_detected = False
+                pause_details = ""
+                if words_data and len(words_data) > 1:
+                    for i in range(len(words_data) - 1):
+                        end_current = getattr(words_data[i], "end", 0)
+                        start_next = getattr(words_data[i+1], "start", 0)
+                        gap = start_next - end_current
+                        if gap > 1.5:
+                            long_pause_detected = True
+                            user_data["pause_count"] += 1
+                            pause_details += f" (Awkward pause/block of {gap:.1f}s)"
+
+                stutter_detected = False
+                stutter_details = ""
+                if words_data and len(words_data) > 1:
+                    for i in range(len(words_data) - 1):
+                        w1 = words_data[i].word.strip().lower()
+                        w2 = words_data[i+1].word.strip().lower()
+                        if w1 == w2 and len(w1) > 0:
+                            stutter_detected = True
+                            user_data["stutter_count"] += 1
+                            stutter_details += f" (Word/syllable repetition on '{w1}')"
+                            break
+
+                fillers_found = sum(user_text.lower().count(f) for f in ["um", "uh", "like", "you know", "ah", "so"])
+                user_data["filler_count"] += fillers_found
+                user_data["turns_practiced"] += 1
+
+                user_display_msg = f"*(Spoken Transcript)*: {user_text}"
+                tags = []
+                if long_pause_detected:
+                    tags.append("Awkward pause detected")
+                if stutter_detected:
+                    tags.append("Stuttering/repetition detected")
+                if tags:
+                    user_display_msg += f" *[Clinical Data: {', '.join(tags)}]*"
+
+                user_data["messages"].append({"role": "user", "content": user_display_msg})
+
+                if user_data["homework_assigned_this_session"]:
+                    dynamic_hw_instruction = "REMINDER: A targeted homework assignment has ALREADY been assigned this session. Do NOT assign any new homework."
+                else:
+                    dynamic_hw_instruction = "You MUST assign EXACTLY ONE targeted homework assignment focused on overcoming the specific speech challenges detected, using the format 'Homework Assignment: [task]'."
+
+                note_content = (
+                    f"Clinical SLP diagnostic report: User audio transcript received. "
+                    f"Detected metrics -> Fillers: {fillers_found}, Pause/Block issue: {long_pause_detected} {pause_details}, Stutter/Repetition issue: {stutter_detected} {stutter_details}. "
+                    f"As a licensed Speech-Language Pathologist and speech coach, you MUST: "
+                    f"1. Diagnose these specific speech hurdles and recommend targeted clinical techniques to overcome them. "
+                    f"2. Provide coaching on sentence construction by suggesting a better, smoother way to articulate their ideas. "
+                    f"3. {dynamic_hw_instruction} "
+                    f"4. Keep the conversation flowing naturally with an open-ended follow-up question."
+                )
+                user_data["messages"].append({"role": "system", "content": note_content})
+
+                response = client.chat.completions.create(model="gpt-4o-mini", messages=user_data["messages"])
+                coach_reply = response.choices[0].message.content
+
+                user_data["messages"].pop(-2)
+
+                if "Homework Assignment:" in coach_reply:
+                    if not user_data["homework_assigned_this_session"]:
+                        user_data["homework_assigned_this_session"] = True
+                        parts = coach_reply.split("Homework Assignment:")
+                        if len(parts) > 1:
+                            user_data["current_homework"] = parts[1].strip()
+                    else:
+                        coach_reply = coach_reply.replace("Homework Assignment:", "Clinical Note on Practice:")
+
+                user_data["messages"].append({"role": "assistant", "content": coach_reply})
+
+                speech_file_path = "assistant_voice.mp3"
+                voice_resp = client.audio.speech.create(model="tts-1", voice="alloy", input=coach_reply, speed=speech_speed)
+                voice_resp.stream_to_file(speech_file_path)
+                
+                with open(speech_file_path, "rb") as f:
+                    user_data["latest_audio_bytes"] = f.read()
+                
                 if os.path.exists(audio_file_path):
                     os.remove(audio_file_path)
-                st.stop()
-        
-        with st.spinner("Analyzing speech mechanics, detecting hurdles, and formulating SLP recommendations..."):
-            audio_file_path = "temp_audio.wav"
-            with open(audio_file_path, "wb") as f:
-                f.write(audio_bytes)
+                if os.path.exists(speech_file_path):
+                    os.remove(speech_file_path)
+                
+                st.rerun()
 
-            with open(audio_file_path, "rb") as audio_file:
-                transcript_response = client.audio.transcriptions.create(
-                    model="whisper-1", file=audio_file, response_format="verbose_json", timestamp_granularities=["word"]
-                )
-            
-            user_text = transcript_response.text
-            words_data = getattr(transcript_response, "words", [])
-
-            long_pause_detected = False
-            pause_details = ""
-            if words_data and len(words_data) > 1:
-                for i in range(len(words_data) - 1):
-                    end_current = getattr(words_data[i], "end", 0)
-                    start_next = getattr(words_data[i+1], "start", 0)
-                    gap = start_next - end_current
-                    if gap > 1.5:
-                        long_pause_detected = True
-                        user_data["pause_count"] += 1
-                        pause_details += f" (Awkward pause/block of {gap:.1f}s)"
-
-            # Advanced Stuttering Detection Algorithm
-            stutter_detected = False
-            stutter_details = ""
-            if words_data and len(words_data) > 1:
-                for i in range(len(words_data) - 1):
-                    w1 = words_data[i].word.strip().lower()
-                    w2 = words_data[i+1].word.strip().lower()
-                    if w1 == w2 and len(w1) > 0:
-                        stutter_detected = True
-                        user_data["stutter_count"] += 1
-                        stutter_details += f" (Word/syllable repetition on '{w1}')"
-                        break
-
-            fillers_found = sum(user_text.lower().count(f) for f in ["um", "uh", "like", "you know", "ah", "so"])
-            user_data["filler_count"] += fillers_found
-            user_data["turns_practiced"] += 1
-
-            user_display_msg = f"*(Spoken Transcript)*: {user_text}"
-            tags = []
-            if long_pause_detected:
-                tags.append("Awkward pause detected")
-            if stutter_detected:
-                tags.append("Stuttering/repetition detected")
-            if tags:
-                user_display_msg += f" *[Clinical Data: {', '.join(tags)}]*"
-
-            user_data["messages"].append({"role": "user", "content": user_display_msg})
-            with st.chat_message("user"):
-                st.write(user_display_msg)
-
-            if user_data["homework_assigned_this_session"]:
-                dynamic_hw_instruction = "REMINDER: A targeted homework assignment has ALREADY been assigned this session. Do NOT assign any new homework."
-            else:
-                dynamic_hw_instruction = "You MUST assign EXACTLY ONE targeted homework assignment focused on overcoming the specific speech challenges detected, using the format 'Homework Assignment: [task]'."
-
-            note_content = (
-                f"Clinical SLP diagnostic report: User audio transcript received. "
-                f"Detected metrics -> Fillers: {fillers_found}, Pause/Block issue: {long_pause_detected} {pause_details}, Stutter/Repetition issue: {stutter_detected} {stutter_details}. "
-                f"As a licensed Speech-Language Pathologist and speech coach, you MUST: "
-                f"1. Diagnose these specific speech hurdles and recommend targeted clinical techniques to overcome them. "
-                f"2. Provide coaching on sentence construction by suggesting a better, smoother way to articulate their ideas. "
-                f"3. {dynamic_hw_instruction} "
-                f"4. Keep the conversation flowing naturally with an open-ended follow-up question."
-            )
-            user_data["messages"].append({"role": "system", "content": note_content})
-
-            response = client.chat.completions.create(model="gpt-4o-mini", messages=user_data["messages"])
-            coach_reply = response.choices[0].message.content
-
-            user_data["messages"].pop(-2)
-
-            if "Homework Assignment:" in coach_reply:
-                if not user_data["homework_assigned_this_session"]:
-                    user_data["homework_assigned_this_session"] = True
-                    parts = coach_reply.split("Homework Assignment:")
-                    if len(parts) > 1:
-                        user_data["current_homework"] = parts[1].strip()
-                else:
-                    coach_reply = coach_reply.replace("Homework Assignment:", "Clinical Note on Practice:")
-
-            user_data["messages"].append({"role": "assistant", "content": coach_reply})
-            with st.chat_message("assistant"):
-                st.write(coach_reply)
-
-            speech_file_path = "assistant_voice.mp3"
-            voice_resp = client.audio.speech.create(model="tts-1", voice="alloy", input=coach_reply, speed=speech_speed)
-            voice_resp.stream_to_file(speech_file_path)
-            
-            with open(speech_file_path, "rb") as f:
-                user_data["latest_audio_bytes"] = f.read()
-            
-            if os.path.exists(audio_file_path):
-                os.remove(audio_file_path)
-            if os.path.exists(speech_file_path):
-                os.remove(speech_file_path)
-            
-            st.rerun()
+            except Exception as e:
+                st.error(f"An error occurred during audio processing: {e}")
 
 # --- SESSION EXPORT ---
 st.sidebar.markdown("---")
