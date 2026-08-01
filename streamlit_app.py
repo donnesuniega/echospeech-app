@@ -56,24 +56,27 @@ if not st.session_state.logged_in:
                 st.error("Invalid username or password. Please check your credentials or create a new account.")
                 
     with auth_tab2:
-        st.subheader("Create a New Account")
-        new_user = st.text_input("Choose Username", key="new_user").strip().lower()
-        new_pass = st.text_input("Choose Password", type="password", key="new_pass")
-        confirm_pass = st.text_input("Confirm Password", type="password", key="confirm_pass")
-        
-        if st.button("Register Account", key="btn_signup"):
-            if not new_user or not new_pass:
-                st.error("Please fill in both username and password fields.")
-            elif new_user in st.session_state.user_credentials:
-                st.error("That username already exists. Please pick another or sign in.")
-            elif new_pass != confirm_pass:
-                st.error("Passwords do not match.")
-            else:
-                st.session_state.user_credentials[new_user] = new_pass
-                st.session_state.logged_in = True
-                st.session_state.username = new_user
-                st.success(f"Account created successfully! Welcome, {new_user}!")
-                st.rerun()
+        with st.form("signup_form"):
+            st.subheader("Create a New Account")
+            new_user = st.text_input("Choose Username", key="new_user").strip().lower()
+            new_pass = st.text_input("Choose Password", type="password", key="new_pass")
+            confirm_pass = st.text_input("Confirm Password", type="password", key="confirm_pass")
+            
+            submit_signup = st.form_submit_button("Register Account")
+            
+            if submit_signup:
+                if not new_user or not new_pass:
+                    st.error("Please fill in both username and password fields.")
+                elif new_user in st.session_state.user_credentials:
+                    st.error("That username already exists. Please pick another or sign in.")
+                elif new_pass != confirm_pass:
+                    st.error("Passwords do not match.")
+                else:
+                    st.session_state.user_credentials[new_user] = new_pass
+                    st.session_state.logged_in = True
+                    st.session_state.username = new_user
+                    st.success(f"Account created successfully! Welcome, {new_user}!")
+                    st.rerun()
                 
     st.stop()
 
