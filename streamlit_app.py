@@ -88,7 +88,7 @@ if current_user not in st.session_state.user_profiles:
         "pause_count": 0,
         "stutter_count": 0,
         "turns_practiced": 0,
-        "current_homework": "Practice conscious diaphragmatic breathing paired with light articulatory contact and gentle onsets.",
+        "current_homework": "Practice smooth diaphragmatic breath support and gentle articulatory onsets during daily chats.",
         "homework_assigned_this_session": False,
         "avatar": "🧑‍💼",
         "custom_avatar_file": None,
@@ -167,7 +167,7 @@ st.sidebar.subheader("🎯 Active Home Exercise")
 st.sidebar.info(user_data["current_homework"])
 
 if st.sidebar.button("Discuss Homework / Start Practice"):
-    homework_prompt = f"Let's review my current technical home assignment: {user_data['current_homework']}. Evaluate my clinical progress and give me expert speech pathology feedback."
+    homework_prompt = f"Let's chat about my current home practice task: {user_data['current_homework']}. How have you found practicing it so far?"
     user_data["messages"].append({"role": "user", "content": homework_prompt})
     
     response = OpenAI().chat.completions.create(model="gpt-4o-mini", messages=user_data["messages"])
@@ -184,7 +184,7 @@ if st.sidebar.button("Discuss Homework / Start Practice"):
     st.rerun()
 
 if st.sidebar.button("Exit Homework / Return to General Session"):
-    exit_prompt = "Let's move on from the assignment discussion and continue our general clinical speech therapy session."
+    exit_prompt = "Let's move on from our homework review and chat about something else in our session."
     user_data["messages"].append({"role": "user", "content": exit_prompt})
     
     response = OpenAI().chat.completions.create(model="gpt-4o-mini", messages=user_data["messages"])
@@ -209,36 +209,37 @@ with st.expander("🧘 Pre-Speech Pacing Anchor"):
 
 # --- DYNAMIC AGE VOCABULARY MAPPING ---
 if "Child" in age_group:
-    age_guideline = "Use simple, direct, and straightforward language appropriate for a child aged 6-10."
+    age_guideline = "Use warm, friendly, and accessible language suitable for a child aged 6-10."
 elif "Teenager" in age_group:
-    age_guideline = "Use straightforward, concise, and direct language appropriate for a teenager aged 11-17."
+    age_guideline = "Use relatable, down-to-earth language suitable for a teenager aged 11-17."
 else:
-    age_guideline = "Use professional, objective, and clinical language appropriate for an adult."
+    age_guideline = "Use professional yet conversational and engaging language suitable for an adult."
 
 # --- SYSTEM PROMPT BUILDER ---
 if user_data["homework_assigned_this_session"]:
-    homework_rule = "STRICT RULE: A targeted speech therapy homework assignment HAS ALREADY BEEN GIVEN during this session. You are strictly forbidden from ever mentioning, referencing, or repeating homework assignments again during this conversation."
+    homework_rule = "STRICT RULE: A targeted practice task HAS ALREADY BEEN GIVEN during this session. Do not mention homework again."
 else:
-    homework_rule = "STRICT RULE: You must assign EXACTLY ONE targeted speech therapy homework assignment during this session focused on overcoming the specific speech challenges detected, using the exact format 'Homework Assignment: [task]'. Once given, you must never mention homework again for the rest of the session."
+    homework_rule = "STRICT RULE: You must weave in EXACTLY ONE practical speech technique or home exercise naturally into your response, using the format 'Homework Assignment: [task]'. Once given, never mention it again."
 
 vocab_guideline = (
-    f"You are a licensed Speech-Language Pathologist (SLP) specializing in fluency disorders and advanced motor-speech mechanics. {age_guideline} "
-    "TONE DIRECTIVE: Be highly technical, objective, and precise. Completely avoid excessive praise or generic encouragement. Focus deeply on explicit speech pathology interventions, physiological mechanics (e.g., vocal fold adduction, airflow management, articulatory contact pressure, rate control, and proprioceptive monitoring). "
-    "ANTI-ECHO RULE: Do NOT repeat, echo, or paraphrase what the user just said at the beginning of your response. Instead, give a brief, clinical acknowledgement (e.g., 'Acknowledged.', 'Data noted.', 'Let's examine the mechanics.') followed immediately by your technical analysis and coaching. "
-    "Your core functions are strictly focused on three pillars: "
-    "1. Be a Speech Pathologist: Provide advanced clinical diagnoses of blocks, prolongations, and repetitions, prescribing specific fluency-shaping techniques (e.g., easy onsets, light articulatory contacts, prolonged speech, variable rate control) or stuttering-modification techniques (e.g., cancellations, pull-outs, preparatory sets). "
-    "2. Recommend Better Sentence Structuring: Provide advanced syntactic restructuring guidance to reduce cognitive and articulatory load on complex utterances. "
-    "3. Be a Speech Coach: Guide breath support, respiratory-phonatory coordination, and pacing dynamics rigorously. "
+    f"You are a warm, highly skilled Speech-Language Pathologist (SLP) and expert speech coach. {age_guideline} "
+    "TONE DIRECTIVE: Be conversational, natural, and supportive. Avoid sounding like a stiff robot or overly clinical checklist. Weave technical fluency techniques (such as easy onsets, light articulatory contacts, prolonged phrasing, breath-group pacing, pull-outs, or cancellations) smoothly into natural dialogue. "
+    "ANTI-ECHO RULE: Do NOT repeat, parrot, or echo what the user just said at the start of your reply. Respond directly like a real person in a live conversation. "
+    "Your core focus revolves around three natural pillars: "
+    "1. Speech Pathology & Techniques: Guide them through stuttering management, blocks, or breathing strategies as part of a natural chat. "
+    "2. Sentence Structuring: Gently suggest smoother ways to phrase thoughts so sentences flow without heavy cognitive friction. "
+    "3. Speech Coach: Talk about pacing, articulation, and presence naturally. "
     f"{homework_rule} "
-    "Maintain an ongoing, clinical dialogue, and always conclude your response with a targeted, technical open-ended question to drive the session forward."
+    "Always start your initial greeting with a natural, engaging question, and keep the conversation moving forward by asking a sensible follow-up question in every turn."
 )
 
 system_prompt = f"{vocab_guideline} Current scenario: {scenario} for {age_group}. Active homework assignment: {user_data['current_homework']}"
 
 if not user_data["messages"]:
+    initial_greeting = "Hi there! It's great to connect with you today. To kick things off, how has your speech fluency felt during your conversations so far this week?"
     user_data["messages"] = [
         {"role": "system", "content": system_prompt},
-        {"role": "assistant", "content": f"Hello. I am your clinical Speech-Language Pathologist and fluency coach. Let's begin our session. State your opening phrase, and we will analyze your motor-speech mechanics and syntax."}
+        {"role": "assistant", "content": initial_greeting}
     ]
 
 for message in user_data["messages"]:
@@ -264,7 +265,7 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
     if audio_bytes and audio_data != st.session_state.get('last_processed_audio'):
         st.session_state['last_processed_audio'] = audio_data
         
-        with st.spinner("Executing acoustic and phonetic analysis, evaluating motor-speech mechanics..."):
+        with st.spinner("Listening closely and catching your flow..."):
             audio_file_path = "temp_audio.wav"
             with open(audio_file_path, "wb") as f:
                 f.write(audio_bytes)
@@ -287,7 +288,7 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
                     if gap > 1.5:
                         long_pause_detected = True
                         user_data["pause_count"] += 1
-                        pause_details += f" (Phonatory block/latency of {gap:.1f}s)"
+                        pause_details += f" (Noticeable block of {gap:.1f}s)"
 
             stutter_detected = False
             stutter_details = ""
@@ -298,7 +299,7 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
                     if w1 == w2 and len(w1) > 0:
                         stutter_detected = True
                         user_data["stutter_count"] += 1
-                        stutter_details += f" (Syllable/word iteration loop on '{w1}')"
+                        stutter_details += f" (Repetition on '{w1}')"
                         break
 
             fillers_found = sum(user_text.lower().count(f) for f in ["um", "uh", "like", "you know", "ah", "so"])
@@ -308,31 +309,29 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
             user_display_msg = f"*(Spoken Transcript)*: {user_text}"
             tags = []
             if long_pause_detected:
-                tags.append("Phonatory block detected")
+                tags.append("pause/block noted")
             if stutter_detected:
-                tags.append("Repetition/clonic behavior detected")
+                tags.append("repetition noted")
             if tags:
                 tag_str = ", ".join(tags)
-                user_display_msg += f" *[Acoustic Telemetry: {tag_str}]*"
+                user_display_msg += f" *[Speech Insights: {tag_str}]*"
 
             user_data["messages"].append({"role": "user", "content": user_display_msg})
             with st.chat_message("user"):
                 st.write(user_display_msg)
 
             if user_data["homework_assigned_this_session"]:
-                dynamic_hw_instruction = "REMINDER: A technical intervention protocol has ALREADY been assigned this session. You are strictly forbidden from mentioning homework again."
+                dynamic_hw_instruction = "REMINDER: A practice task has already been given. Do not mention homework again."
             else:
-                dynamic_hw_instruction = "You MUST assign EXACTLY ONE technical speech therapy exercise or modification technique (e.g., cancellations, pull-outs, easy onsets) targeting the identified speech error, using the exact format 'Homework Assignment: [task]'. Once given, never mention it again."
+                dynamic_hw_instruction = "Weave in EXACTLY ONE natural fluency technique or exercise naturally using the format 'Homework Assignment: [task]'. Once given, never mention it again."
 
             note_content = (
-                f"Clinical Telemetry Report: User audio stream analyzed. "
-                f"Metrics -> Fillers: {fillers_found}, Phonatory block/pause: {long_pause_detected} {pause_details}, Repetition/Clonic event: {stutter_detected} {stutter_details}. "
-                f"As a clinical Speech-Language Pathologist and technical fluency coach, you MUST maintain a rigorous, highly technical tone with zero fluff, provide a brief clinical acknowledgement instead of echoing the user, and execute your three core pillars: "
-                f"1. Speech Pathology: Provide a precise technical diagnosis of the motor-speech breakdown and prescribe explicit fluency-shaping or stuttering-modification techniques (e.g., breath flow management, light articulatory contacts, pull-outs). "
-                f"2. Sentence Structuring Coach: Recommend optimized syntactic phrasing to lower cognitive load and manage respiratory breath groups. "
-                f"3. Speech Coach: Instruct precise pacing, co-articulation, and vocal tract tension reduction. "
-                f"4. {dynamic_hw_instruction} "
-                f"5. Formulate a technical, open-ended clinical inquiry to continue the session."
+                f"Session update: User audio received. "
+                f"Metrics -> Fillers: {fillers_found}, Pause/block: {long_pause_detected} {pause_details}, Repetition: {stutter_detected} {stutter_details}. "
+                f"As a warm, natural Speech-Language Pathologist and coach, respond conversationally without echoing the user. "
+                f"Integrate your three pillars naturally: 1. Speech pathology & fluency techniques (easy onsets, light contacts, pull-outs), 2. Better sentence structuring suggestions, and 3. Speech coaching on pacing. "
+                f"{dynamic_hw_instruction} "
+                f"Keep the conversation flowing smoothly like a real chat and always finish with a sensible, natural follow-up question."
             )
             user_data["messages"].append({"role": "system", "content": note_content})
 
@@ -348,7 +347,7 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
                     if len(parts) > 1:
                         user_data["current_homework"] = parts[1].strip()
                 else:
-                    coach_reply = coach_reply.replace("Homework Assignment:", "Clinical Protocol Note:")
+                    coach_reply = coach_reply.replace("Homework Assignment:", "Practice Tip:")
 
             user_data["messages"].append({"role": "assistant", "content": coach_reply})
             with st.chat_message("assistant"):
