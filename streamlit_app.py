@@ -16,6 +16,20 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# --- EMBEDDED MINIMALIST VECTOR LOGO COMPONENT ---
+def render_app_logo():
+    st.markdown("""
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 10px;">
+            <div style="background: linear-gradient(135deg, #2563eb, #1e40af); width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);">
+                <span style="color: white; font-size: 22px; font-weight: bold;">🎙️</span>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; letter-spacing: -0.5px;">EchoSpeech</h3>
+                <p style="margin: 0; font-size: 11px; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Clinical SLP Coach</p>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
 # --- MOCK USER DATABASE (Stores credentials and profiles) ---
 if "user_credentials" not in st.session_state:
     st.session_state.user_credentials = {
@@ -33,7 +47,8 @@ if "username" not in st.session_state:
 
 # --- LOGIN / SIGN UP GATEWAY ---
 if not st.session_state.logged_in:
-    st.title("🔐 EchoSpeech Portal")
+    render_app_logo()
+    st.title("🔐 Secure Portal")
     st.write("Welcome! Please sign in to your personal profile or create a new account to track your fluency, homework, and session analytics.")
     
     auth_tab1, auth_tab2 = st.tabs(["Sign In", "Create Account (Sign Up)"])
@@ -94,7 +109,10 @@ if current_user not in st.session_state.user_profiles:
 user_data = st.session_state.user_profiles[current_user]
 
 # --- SIDEBAR CONTROLS & USER PROFILE DASHBOARD ---
-st.sidebar.title("👤 User Profile")
+with st.sidebar:
+    render_app_logo()
+    st.markdown("---")
+    st.subheader("👤 User Profile")
 
 col_av1, col_av2 = st.sidebar.columns([1, 2])
 with col_av1:
@@ -192,7 +210,7 @@ if st.sidebar.button("Exit Homework / Return to General Session"):
     st.rerun()
 
 # --- MAIN APP UI ---
-st.title("EchoSpeech: Clinical Speech Pathology & Fluency Coach")
+render_app_logo()
 st.write(f"Logged in as **{current_user}**. Your custom profile, ongoing session, analytics, and homework assignments remain active.")
 
 with st.expander("🧘 Pre-Speech Pacing Anchor"):
