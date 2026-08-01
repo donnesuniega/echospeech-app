@@ -33,7 +33,9 @@ if "username" not in st.session_state:
 
 # --- LOGIN / SIGN UP GATEWAY ---
 if not st.session_state.logged_in:
-    st.title("🔐 EchoSpeech Portal")
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=200)
+    st.title("🔐 Secure Portal")
     st.write("Welcome! Please sign in to your personal profile or create a new account to track your fluency, homework, and session analytics.")
     
     auth_tab1, auth_tab2 = st.tabs(["Sign In", "Create Account (Sign Up)"])
@@ -54,24 +56,27 @@ if not st.session_state.logged_in:
                 st.error("Invalid username or password. Please check your credentials or create a new account.")
                 
     with auth_tab2:
-        st.subheader("Create a New Account")
-        new_user = st.text_input("Choose Username", key="new_user").strip().lower()
-        new_pass = st.text_input("Choose Password", type="password", key="new_pass")
-        confirm_pass = st.text_input("Confirm Password", type="password", key="confirm_pass")
-        
-        if st.button("Register Account", key="btn_signup"):
-            if not new_user or not new_pass:
-                st.error("Please fill in both username and password fields.")
-            elif new_user in st.session_state.user_credentials:
-                st.error("That username already exists. Please pick another or sign in.")
-            elif new_pass != confirm_pass:
-                st.error("Passwords do not match.")
-            else:
-                st.session_state.user_credentials[new_user] = new_pass
-                st.session_state.logged_in = True
-                st.session_state.username = new_user
-                st.success(f"Account created successfully! Welcome, {new_user}!")
-                st.rerun()
+        with st.form("signup_form"):
+            st.subheader("Create a New Account")
+            new_user = st.text_input("Choose Username", key="new_user").strip().lower()
+            new_pass = st.text_input("Choose Password", type="password", key="new_pass")
+            confirm_pass = st.text_input("Confirm Password", type="password", key="confirm_pass")
+            
+            submit_signup = st.form_submit_button("Register Account")
+            
+            if submit_signup:
+                if not new_user or not new_pass:
+                    st.error("Please fill in both username and password fields.")
+                elif new_user in st.session_state.user_credentials:
+                    st.error("That username already exists. Please pick another or sign in.")
+                elif new_pass != confirm_pass:
+                    st.error("Passwords do not match.")
+                else:
+                    st.session_state.user_credentials[new_user] = new_pass
+                    st.session_state.logged_in = True
+                    st.session_state.username = new_user
+                    st.success(f"Account created successfully! Welcome, {new_user}!")
+                    st.rerun()
                 
     st.stop()
 
@@ -94,7 +99,11 @@ if current_user not in st.session_state.user_profiles:
 user_data = st.session_state.user_profiles[current_user]
 
 # --- SIDEBAR CONTROLS & USER PROFILE DASHBOARD ---
-st.sidebar.title("👤 User Profile")
+with st.sidebar:
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=80)
+    st.markdown("---")
+    st.subheader("👤 User Profile")
 
 col_av1, col_av2 = st.sidebar.columns([1, 2])
 with col_av1:
@@ -200,23 +209,26 @@ with st.expander("🧘 Pre-Speech Pacing Anchor"):
 
 # --- DYNAMIC AGE VOCABULARY MAPPING ---
 if "Child" in age_group:
-    age_guideline = "Use simple, encouraging, playful, and easy-to-understand language appropriate for a child aged 6-10."
+    age_guideline = "Use simple, direct, and straightforward language appropriate for a child aged 6-10."
 elif "Teenager" in age_group:
-    age_guideline = "Use modern, relatable, direct, and non-judgmental language appropriate for a teenager aged 11-17."
+    age_guideline = "Use straightforward, concise, and direct language appropriate for a teenager aged 11-17."
 else:
-    age_guideline = "Use professional, mature, and supportive clinical language appropriate for an adult."
+    age_guideline = "Use professional, objective, and clinical language appropriate for an adult."
 
 # --- SYSTEM PROMPT BUILDER ---
 if user_data["homework_assigned_this_session"]:
-    homework_rule = "STRICT RULE: A targeted speech therapy homework assignment HAS ALREADY BEEN GIVEN during this session. You are strictly forbidden from assigning any new homework or using the phrase 'Homework Assignment:'."
+    homework_rule = "STRICT RULE: A targeted speech therapy homework assignment HAS ALREADY BEEN GIVEN during this session. You are strictly forbidden from ever mentioning, referencing, or repeating homework assignments again during this conversation."
 else:
-    homework_rule = "STRICT RULE: You must assign EXACTLY ONE targeted speech therapy homework assignment during this session focused on overcoming the specific speech challenges detected, using the exact format 'Homework Assignment: [task]'. Once given, do not assign any more."
+    homework_rule = "STRICT RULE: You must assign EXACTLY ONE targeted speech therapy homework assignment during this session focused on overcoming the specific speech challenges detected, using the exact format 'Homework Assignment: [task]'. Once given, you must never mention homework again for the rest of the session."
 
 vocab_guideline = (
     f"You are a licensed Speech-Language Pathologist (SLP) and expert speech coach. {age_guideline} "
-    "Your core function is dual-purposed: "
-    "1. CLINICAL PATHOLOGY: Actively diagnose and analyze the user's speech hurdles (such as blocks, pauses, fillers, syllable repetitions, or stuttering) and provide targeted clinical recommendations and exercises to overcome them. "
-    "2. SENTENCE STRUCTURING COACH: Provide professional communication coaching by recommending a better, smoother way to construct and articulate their sentences. "
+    "TONE DIRECTIVE: Be direct, objective, and concise. Completely avoid excessive praise, flattery, or over-the-top encouragement. Keep your feedback strictly focused on objective speech mechanics, fluency, and sentence structuring. "
+    "ANTI-ECHO RULE: Do NOT repeat, echo, or paraphrase what the user just said at the beginning of your response. Instead, give a brief, natural acknowledgement (e.g., 'Got it.', 'Understood.', 'Let's look at that.') followed immediately by your clinical feedback and coaching. "
+    "Your core functions are strictly focused on three pillars: "
+    "1. Be a Speech Pathologist: Actively diagnose and analyze the user's speech hurdles (blocks, pauses, fillers, syllable repetitions, or stuttering) and provide targeted clinical recommendations and exercises. "
+    "2. Recommend Better Sentence Structuring: Provide professional communication coaching by suggesting a better, smoother way to construct and articulate their sentences. "
+    "3. Be a Speech Coach: Guide their pacing, articulation, and delivery dynamics clearly and objectively. "
     f"{homework_rule} "
     "Maintain an ongoing, natural conversational dialogue, and always conclude your response with an open-ended question to keep the session flowing."
 )
@@ -226,7 +238,7 @@ system_prompt = f"{vocab_guideline} Current scenario: {scenario} for {age_group}
 if not user_data["messages"]:
     user_data["messages"] = [
         {"role": "system", "content": system_prompt},
-        {"role": "assistant", "content": f"Hello! I am your clinical Speech-Language Pathologist and speech coach. Let's begin our session. Tell me about what you've been up to today, and we'll analyze your speech fluency and sentence structure as we chat."}
+        {"role": "assistant", "content": f"Hello. I am your clinical Speech-Language Pathologist and speech coach. Let's begin our session. Tell me about what you've been up to today, and we will analyze your speech fluency and sentence structure."}
     ]
 
 for message in user_data["messages"]:
@@ -277,7 +289,6 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
                         user_data["pause_count"] += 1
                         pause_details += f" (Awkward pause/block of {gap:.1f}s)"
 
-            # Advanced Stuttering Detection Algorithm
             stutter_detected = False
             stutter_details = ""
             if words_data and len(words_data) > 1:
@@ -308,18 +319,19 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
                 st.write(user_display_msg)
 
             if user_data["homework_assigned_this_session"]:
-                dynamic_hw_instruction = "REMINDER: A targeted homework assignment has ALREADY been assigned this session. Do NOT assign any new homework."
+                dynamic_hw_instruction = "REMINDER: A targeted homework assignment has ALREADY been assigned this session. You are strictly forbidden from mentioning homework again."
             else:
-                dynamic_hw_instruction = "You MUST assign EXACTLY ONE targeted homework assignment focused on overcoming the specific speech challenges detected, using the format 'Homework Assignment: [task]'."
+                dynamic_hw_instruction = "You MUST assign EXACTLY ONE targeted homework assignment focused on overcoming the specific speech challenges detected, using the exact format 'Homework Assignment: [task]'. Once given, never mention it again."
 
             note_content = (
                 f"Clinical SLP diagnostic report: User audio transcript received. "
                 f"Detected metrics -> Fillers: {fillers_found}, Pause/Block issue: {long_pause_detected} {pause_details}, Stutter/Repetition issue: {stutter_detected} {stutter_details}. "
-                f"As a licensed Speech-Language Pathologist and speech coach, you MUST: "
-                f"1. Diagnose these specific speech hurdles and recommend targeted clinical techniques to overcome them. "
-                f"2. Provide coaching on sentence construction by suggesting a better, smoother way to articulate their ideas. "
-                f"3. {dynamic_hw_instruction} "
-                f"4. Keep the conversation flowing naturally with an open-ended follow-up question."
+                f"As a licensed Speech-Language Pathologist and speech coach, you MUST maintain a direct, objective tone with minimal praise, provide a brief acknowledgement instead of repeating the user's input, and execute your three core pillars: "
+                f"1. Act as a Speech Pathologist (diagnose hurdles & give clinical exercises). "
+                f"2. Recommend better sentence structuring and smoother syntax. "
+                f"3. Act as a Speech Coach (guide pacing, articulation, and delivery). "
+                f"4. {dynamic_hw_instruction} "
+                f"5. Keep the conversation flowing naturally with an open-ended follow-up question."
             )
             user_data["messages"].append({"role": "system", "content": note_content})
 
