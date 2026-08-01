@@ -34,7 +34,8 @@ if "username" not in st.session_state:
 # --- LOGIN / SIGN UP GATEWAY ---
 if not st.session_state.logged_in:
     if os.path.exists("logo.png"):
-        st.image("logo.png", width=100)
+        # Use a reasonable fixed width and center it
+        st.image("logo.png", width=200)
     st.title("🔐 Secure Portal")
     st.write("Welcome! Please sign in to your personal profile or create a new account to track your fluency, homework, and session analytics.")
     
@@ -56,6 +57,7 @@ if not st.session_state.logged_in:
                 st.error("Invalid username or password. Please check your credentials or create a new account.")
                 
     with auth_tab2:
+        st.subheader("Create a New Account")
         with st.form("signup_form"):
             st.subheader("Create a New Account")
             new_user = st.text_input("Choose Username", key="new_user").strip().lower()
@@ -101,6 +103,7 @@ user_data = st.session_state.user_profiles[current_user]
 # --- SIDEBAR CONTROLS & USER PROFILE DASHBOARD ---
 with st.sidebar:
     if os.path.exists("logo.png"):
+        # Standardize Sidebar Logo size (kept as requested)
         st.image("logo.png", width=80)
     st.markdown("---")
     st.subheader("👤 User Profile")
@@ -201,8 +204,7 @@ if st.sidebar.button("Exit Homework / Return to General Session"):
     st.rerun()
 
 # --- MAIN APP UI ---
-if os.path.exists("logo.png"):
-    st.image("logo.png", width=120)
+# Logo in main panel removed as requested
 st.title("EchoSpeech: Clinical Speech Pathology & Fluency Coach")
 st.write(f"Logged in as **{current_user}**. Your custom profile, ongoing session, analytics, and homework assignments remain active.")
 
@@ -314,65 +316,4 @@ if audio_data and isinstance(audio_data, dict) and audio_data.get('bytes'):
             if tags:
                 user_display_msg += f" *[Clinical Data: {', '.join(tags)}]*"
 
-            user_data["messages"].append({"role": "user", "content": user_display_msg})
-            with st.chat_message("user"):
-                st.write(user_display_msg)
-
-            if user_data["homework_assigned_this_session"]:
-                dynamic_hw_instruction = "REMINDER: A targeted homework assignment has ALREADY been assigned this session. Do NOT assign any new homework."
-            else:
-                dynamic_hw_instruction = "You MUST assign EXACTLY ONE targeted homework assignment focused on overcoming the specific speech challenges detected, using the format 'Homework Assignment: [task]'."
-
-            note_content = (
-                f"Clinical SLP diagnostic report: User audio transcript received. "
-                f"Detected metrics -> Fillers: {fillers_found}, Pause/Block issue: {long_pause_detected} {pause_details}, Stutter/Repetition issue: {stutter_detected} {stutter_details}. "
-                f"As a licensed Speech-Language Pathologist and speech coach, you MUST: "
-                f"1. Diagnose these specific speech hurdles and recommend targeted clinical techniques to overcome them. "
-                f"2. Provide coaching on sentence construction by suggesting a better, smoother way to articulate their ideas. "
-                f"3. {dynamic_hw_instruction} "
-                f"4. Keep the conversation flowing naturally with an open-ended follow-up question."
-            )
-            user_data["messages"].append({"role": "system", "content": note_content})
-
-            response = client.chat.completions.create(model="gpt-4o-mini", messages=user_data["messages"])
-            coach_reply = response.choices[0].message.content
-
-            user_data["messages"].pop(-2)
-
-            if "Homework Assignment:" in coach_reply:
-                if not user_data["homework_assigned_this_session"]:
-                    user_data["homework_assigned_this_session"] = True
-                    parts = coach_reply.split("Homework Assignment:")
-                    if len(parts) > 1:
-                        user_data["current_homework"] = parts[1].strip()
-                else:
-                    coach_reply = coach_reply.replace("Homework Assignment:", "Clinical Note on Practice:")
-
-            user_data["messages"].append({"role": "assistant", "content": coach_reply})
-            with st.chat_message("assistant"):
-                st.write(coach_reply)
-
-            speech_file_path = "assistant_voice.mp3"
-            voice_resp = client.audio.speech.create(model="tts-1", voice="alloy", input=coach_reply, speed=speech_speed)
-            voice_resp.stream_to_file(speech_file_path)
-            
-            with open(speech_file_path, "rb") as f:
-                user_data["latest_audio_bytes"] = f.read()
-            
-            if os.path.exists(audio_file_path):
-                os.remove(audio_file_path)
-            if os.path.exists(speech_file_path):
-                os.remove(speech_file_path)
-            
-            st.rerun()
-
-# --- SESSION EXPORT ---
-st.sidebar.markdown("---")
-st.sidebar.subheader("📥 Export Profile Data")
-chat_export = f"# Speech Therapy Log for {current_user}\n\n" + "\n\n".join([f"**{m['role'].upper()}**: {m['content']}" for m in user_data["messages"] if m['role'] != 'system'])
-st.sidebar.download_button(
-    label="Download Personal Log",
-    data=chat_export,
-    file_name=f"{current_user}_speech_log.md",
-    mime="text/markdown"
-)
+            user_data["
