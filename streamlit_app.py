@@ -19,8 +19,7 @@ st.markdown("""
 # --- MOCK USER DATABASE (Stores credentials and profiles) ---
 if "user_credentials" not in st.session_state:
     st.session_state.user_credentials = {
-        "ralph": "speech2026",
-        "demo": "demo123"
+        "ralph": "speech2026"
     }
 
 if "user_profiles" not in st.session_state:
@@ -41,7 +40,6 @@ if not st.session_state.logged_in:
     
     with auth_tab1:
         st.subheader("Sign In to Existing Account")
-        st.info("💡 **Quick Test Credential:** Username: `demo` | Password: `demo123`")
         
         login_user = st.text_input("Username", key="login_user").strip().lower()
         login_pass = st.text_input("Password", type="password", key="login_pass")
