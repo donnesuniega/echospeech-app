@@ -1,0 +1,34 @@
+{
+  "short_name": "EchoSpeech",
+  "name": "EchoSpeech",
+  "icons": [
+    {
+      "src": "favicon_512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "id": "Clinical SLP Coach",
+  "description": "EchoSpeech: Clinical SLP Coach",
+  "lang": "en",
+  "screenshots": [
+    {
+      "src": "https://imgur.com/0eMEbhD",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile view"
+    },
+    {
+      "src": "https://imgur.com/YRXMUNl",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop view"
+    }
+  ]
+}
