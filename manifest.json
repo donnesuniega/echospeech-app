@@ -1,15 +1,60 @@
 {
-  "name": "EchoSpeech SLP Coach",
+  "name": "EchoSpeech",
   "short_name": "EchoSpeech",
-  "start_url": "/",
+  "start_url": "https://echospeech-app-bnb2haenqyxue6kvcgev5t.streamlit.app/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ff4b4b",
+  "description": "EchoSpeech is an AI-powered speech pathology and fluency coaching app that helps users improve their communication skills through natural conversation, real-time disfluency tracking, and tailored therapy techniques.",
+  "lang": " English",
+  "dir": "auto",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "orientation": "any",
   "icons": [
     {
-      "src": "https://i.imgur.com/TJeOes5.png",
+      "src": "manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "manifest-icon-512.maskable.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://i.imgur.com/MaMqIcr.png",
+      "sizes": "2880x1800",
+      "type": "image/png",
+      "description": "A screenshot of the session page"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "windows",
+      "url": " The URL to your app in that app store"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "The name you would like to be displayed for your shortcut",
+      "url": "The url you would like to open when the user chooses this shortcut. This must be a URL local to your PWA. For example: If my start_url is /, this URL must be something like /shortcut",
+      "description": "A description of the functionality of this shortcut"
     }
   ]
 }
